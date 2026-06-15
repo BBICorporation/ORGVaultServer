@@ -11,11 +11,11 @@ fn main() -> std::io::Result<()> {
     // Make sure it run as root
     match RunAsRoot() {
         Ok(_) => {}
-        Err(e) => {
+        Err(E) => {
             println!(
                 "{0} {1:?}",
-                "Run as Root Error | main | e:std::io::Error:  ".red(),
-                e
+                "Run as Root Error | main:  ".red(),
+                E
             );
             return Ok(());
         }
@@ -88,13 +88,13 @@ fn RunAsRoot() -> std::io::Result<()> {
     );
 
     let SUDO_CONVERTION_ERROR: std::io::Error = Command::new("sudo")
-        .arg(std::env::current_exe().map_err(|e| {
+        .arg(std::env::current_exe().map_err(|E| {
             std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
                     "{0} {1:?}",
-                    "Error getting current exe | RunAsRoot | e:std::io::Error:  ".red(),
-                    e
+                    "Error getting current exe | RunAsRoot:  ".red(),
+                    E
                 ),
             )
         })?)

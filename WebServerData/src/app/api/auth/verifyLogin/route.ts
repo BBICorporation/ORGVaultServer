@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
     const KEY_BIN_HASH = process.env.KEY_BIN_HASH;
 
     if (!KEY_BIN_HASH) {
-        return NextResponse.json({ response: "Internal server errro" }, { status: 500 });
+        return NextResponse.json({ response: "Internal server error" }, { status: 500 });
     }
 
     if (!TOKEN) {

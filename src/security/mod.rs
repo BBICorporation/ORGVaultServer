@@ -25,11 +25,11 @@ pub fn VerifySecurityRequirements() -> Result<(), String> {
                 println!("\t\t### {}", DATA.fileFeedback);
                 drop(DATA.file);
             }
-            Err(e) => {
+            Err(E) => {
                 return Err(format!(
                     "{0} {1:?}",
-                    "Error getting config file | VerifySecurityRequirements | e:std::io::Error:  ".red(),
-                    e
+                    "Error getting config file | VerifySecurityRequirements:  ".red(),
+                    E
                 ));
             }
         };
@@ -49,11 +49,11 @@ pub fn VerifySecurityRequirements() -> Result<(), String> {
             Ok(_) => {
                 println!("\t\t### Encryption key file generated!");
             }
-            Err(e) => {
+            Err(E) => {
                 return Err(format!(
                     "{0} {1:?}",
-                    "Error generating encryption key file | VerifySecurityRequirements | e:std::io::Error:  ".red(),
-                    e
+                    "Error generating encryption key file | VerifySecurityRequirements:  ".red(),
+                    E
                 ));
             }
         };

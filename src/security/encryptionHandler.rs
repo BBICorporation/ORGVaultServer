@@ -12,24 +12,24 @@ pub fn GenerateConfigEncryptionKey() -> Result<(), Error> {
     rand::thread_rng().fill_bytes(&mut key[..]);
 
     let mut file =
-        std::fs::File::create(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION).map_err(|e| {
+        std::fs::File::create(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION).map_err(|E| {
             Error::new(
                 ErrorKind::Other,
                 format!(
                     "{0} {1:?}",
-                    "Generate Config Encryption Key Error (file creation) | GenerateConfigEncryptionKey | e:std::io::Error:  ".red(),
-                    e
+                    "Generate Config Encryption Key Error (file creation) | GenerateConfigEncryptionKey:  ".red(),
+                    E
                 ),
             )
         })?;
 
-    file.write_all(&key).map_err(|e| {
+    file.write_all(&key).map_err(|E| {
         Error::new(
             ErrorKind::Other,
             format!(
                 "{0} {1:?}",
-                "Generate Config Encryption Key Error (file writting) | GenerateConfigEncryptionKey | e:std::io::Error:  ".red(),
-                e
+                "Generate Config Encryption Key Error (file writting) | GenerateConfigEncryptionKey:  ".red(),
+                E
             ),
         )
     })?;
@@ -43,11 +43,11 @@ pub fn ConfigEncryptionKeyHash() -> Result<String, ()> {
     let COMMAND_OUTPUT = Command::new("sha256sum")
         .arg(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)
         .output()
-        .map_err(|e| {
+        .map_err(|E| {
             println!(
                 "{0} {1:?}",
-                "Config Encryption Key Hash Error | ConfigEncryptionKeyHash | e:std::io::Error:  ".red(),
-                e
+                "Config Encryption Key Hash Error | ConfigEncryptionKeyHash:  ".red(),
+                E
             );
             return ();
         })

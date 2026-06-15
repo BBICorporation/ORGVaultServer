@@ -1,6 +1,6 @@
 use crate::{
     security,
-    server::{self, webServerEndpoints},
+    server::{self, webServerEndpoints::*},
 };
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, http, web};
@@ -34,13 +34,13 @@ pub async fn RunWebServerBackend() -> Result<(), std::io::Error> {
         App::new().wrap(CORS).configure(ConfigureAPIEndpoints)
     })
     .bind((server::SERVER_ADDRESS, server::WEB_SERVER_BACKEND_PORT))
-    .map_err(|e| {
+    .map_err(|E| {
         std::io::Error::new(
             std::io::ErrorKind::Other,
             format!(
                 "{0} {1:?}",
-                "Error binding server and port | RunWebServerBackend | e:std::io::Error:  ".red(),
-                e
+                "Error binding server and port | RunWebServerBackend:  ".red(),
+                E
             ),
         )
     })?
@@ -109,13 +109,13 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
                 .status()
-                .map_err(|e| {
+                .map_err(|E| {
                     std::io::Error::new(
                         std::io::ErrorKind::Other,
                         format!(
                             "{0} {1:?}",
-                            "Frontend build/start error | RunWebServerFrontend | e:std::io::Error:  ".red(),
-                            e
+                            "Frontend build/start error | RunWebServerFrontend:  ".red(),
+                            E
                         ),
                     )
                 })?;
@@ -145,17 +145,21 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
 
 // Configuring API endpoints
 fn ConfigureAPIEndpoints(cfg: &mut web::ServiceConfig) {
-    cfg.route("/api/backend/ping", web::get().to(webServerEndpoints::HandlePingEndpoint));
+    cfg.route("/api/backend/ping", web::get().to(HandlePingEndpoint));
     cfg.route(
         "/api/backend/initializedStatus",
-        web::get().to(webServerEndpoints::HandleInitializedStatusEndpoint),
+        web::get().to(HandleInitializedStatusEndpoint),
     );
     cfg.route(
         "/api/backend/initializeServer",
-        web::post().to(webServerEndpoints::HandleInitializeServerEndpoint),
+        web::post().to(HandleInitializeServerEndpoint),
     );
     cfg.route(
         "/api/backend/verifyAdminMac",
-        web::post().to(webServerEndpoints::HandleVerifyAdminMacEndpoint),
+        web::post().to(HandleVerifyAdminMacEndpoint),
+    );
+    cfg.route(
+        "/api/backend/loginVerification",
+        web::post().to(HandleLoginVerificationEndpoint),
     );
 }

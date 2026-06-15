@@ -45,7 +45,7 @@ export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any 
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    adminMacAddress,
+                    macAddress: adminMacAddress,
                     username,
                     password,
                 }),

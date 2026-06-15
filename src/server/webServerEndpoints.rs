@@ -28,16 +28,11 @@ pub async fn HandleInitializedStatusEndpoint() -> HttpResponse {
 }
 
 // Handling initialize server endpoint
-#[derive(Deserialize)]
-pub struct InitializeRequest {
-    adminMacAddress: String,
-    username: String,
-    password: String,
-}
-
-pub async fn HandleInitializeServerEndpoint(req: web::Json<InitializeRequest>) -> HttpResponse {
+pub async fn HandleInitializeServerEndpoint(
+    req: web::Json<crate::SCFAdminDetails>,
+) -> HttpResponse {
     // Safely extract headers without unwrapping
-    let MAC_ADDRESS = &req.adminMacAddress;
+    let MAC_ADDRESS = &req.macAddress;
     let USERNAME = &req.username;
     let PASSWORD = &req.password;
 
@@ -56,11 +51,11 @@ pub async fn HandleInitializeServerEndpoint(req: web::Json<InitializeRequest>) -
     // Initialize config file
     match server::InitializeConfigFile(MAC_ADDRESS.clone(), USERNAME.clone(), PASSWORD.clone()) {
         Ok(_) => return HttpResponse::Ok().finish(),
-        Err(e) => {
+        Err(E) => {
             println!(
                 "{0} {1:?}",
-                "Initialize Server Endpoint Error | HandleInitializeServerEndpoint | e:std::io::Error:  ".red(),
-                e
+                "Initialize Server Endpoint Error | HandleInitializeServerEndpoint:  ".red(),
+                E
             );
             return HttpResponse::InternalServerError().finish();
         }
@@ -108,7 +103,7 @@ pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>)
         Err(E) => {
             println!(
                 "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (configFile) | HandleVerifyAdminMacEndpoint | E:std::io::Error:  ".red(),
+                "Verify Admin Mac Address Endpoint Error (configFile) | HandleVerifyAdminMacEndpoint:  ".red(),
                 E
             );
             return HttpResponse::InternalServerError()
@@ -120,7 +115,7 @@ pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>)
         Err(E) => {
             println!(
                 "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (keyFile) | HandleVerifyAdminMacEndpoint | E:std::io::Error:  ".red(),
+                "Verify Admin Mac Address Endpoint Error (keyFile) | HandleVerifyAdminMacEndpoint:  ".red(),
                 E
             );
             return HttpResponse::InternalServerError()
@@ -143,7 +138,7 @@ pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>)
         Err(E) => {
             println!(
                     "{0} {1:?}",
-                    "Verify Admin Mac Address Endpoint Error (DECRYPTED_DATA: Vec<u8>) | HandleVerifyAdminMacEndpoint | E:std::io::Error:  ".red(),
+                    "Verify Admin Mac Address Endpoint Error (DECRYPTED_DATA: Vec<u8>) | HandleVerifyAdminMacEndpoint:  ".red(),
                     E
                 );
             return HttpResponse::InternalServerError()
@@ -156,7 +151,7 @@ pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>)
         Err(E) => {
             println!(
                 "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (DECRYPTED_DATA: crate::ServerConfigFile) | HandleVerifyAdminMacEndpoint | E:serde_json::Error:  ".red(),
+                "Verify Admin Mac Address Endpoint Error (DECRYPTED_DATA: crate::ServerConfigFile) | HandleVerifyAdminMacEndpoint:  ".red(),
                 E
             );
             return HttpResponse::InternalServerError()
@@ -170,5 +165,100 @@ pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>)
     }
 
     // Return
+    HttpResponse::Ok().finish()
+}
+
+// Handling login verification endpoint
+pub async fn HandleLoginVerificationEndpoint(
+    req: web::Json<crate::SCFAdminDetails>,
+) -> HttpResponse {
+    // Safely extract headers without unwrapping
+    let MAC_ADDRESS = &req.macAddress;
+    let USERNAME = &req.username;
+    let PASSWORD = &req.password;
+
+    // Format checking
+    if MAC_ADDRESS == "" || !crate::MAC_ADDRESS_FORMAT.is_match(MAC_ADDRESS) {
+        return HttpResponse::Unauthorized().json(json!({"response": "Invalid admin mac address"}));
+    }
+
+    let mut configFile = match fs::File::open(&*crate::GLOBAL_PROGRAM_CONFIG_FILE) {
+        Ok(FILE) => FILE,
+        Err(E) => {
+            println!(
+                "{0} {1:?}",
+                "Login Verification Endpoint Error (configFile) | HandleLoginVerificationEndpoint:  ".red(),
+                E
+            );
+            return HttpResponse::InternalServerError()
+                .json(json!({"response": "Internal Server Error"}));
+        }
+    };
+
+    let mut keyFile = match fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION) {
+        Ok(FILE) => FILE,
+        Err(E) => {
+            println!(
+                "{0} {1:?}",
+                "Login Verification Endpoint Error (keyFile) | HandleLoginVerificationEndpoint:  "
+                    .red(),
+                E
+            );
+            return HttpResponse::InternalServerError()
+                .json(json!({"response": "Internal Server Error"}));
+        }
+    };
+
+    let mut configFileDataBuffer = Vec::new();
+    let _ = configFile.read_to_end(&mut configFileDataBuffer);
+
+    let mut keyFileDataBuffer = Vec::new();
+    let _ = keyFile.read_to_end(&mut keyFileDataBuffer);
+
+    // Decrypting data
+    let DECRYPTED_DATA: Vec<u8> = match security::encryptionHandler::DecryptData(
+        &configFileDataBuffer,
+        &keyFileDataBuffer,
+    ) {
+        Ok(DATA) => DATA,
+        Err(E) => {
+            println!(
+                    "{0} {1:?}",
+                    "Login Verification Endpoint Error (DECRYPTED_DATA: Vec<u8>) | HandleLoginVerificationEndpoint:  ".red(),
+                    E
+                );
+            return HttpResponse::InternalServerError()
+                .json(json!({"response": "Internal Server Error"}));
+        }
+    };
+
+    let DECRYPTED_DATA: crate::ServerConfigFile = match serde_json::from_slice(&DECRYPTED_DATA) {
+        Ok(DATA) => DATA,
+        Err(E) => {
+            println!(
+                "{0} {1:?}",
+                "Login Verification Endpoint Error (DECRYPTED_DATA: crate::ServerConfigFile) | HandleLoginVerificationEndpoint:  ".red(),
+                E
+            );
+            return HttpResponse::InternalServerError()
+                .json(json!({"response": "Internal Server Error"}));
+        }
+    };
+
+    // Checking if admin mac is valid
+    if &DECRYPTED_DATA.adminDetails.macAddress != MAC_ADDRESS {
+        return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+    }
+
+    // Checking if username is valid
+    if &DECRYPTED_DATA.adminDetails.username != USERNAME {
+        return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+    }
+
+    // Checking if password is valid
+    if &DECRYPTED_DATA.adminDetails.password != PASSWORD {
+        return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+    }
+
     HttpResponse::Ok().finish()
 }

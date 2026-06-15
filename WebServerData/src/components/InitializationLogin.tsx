@@ -45,7 +45,7 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    adminMacAddress,
+                    macAddress: adminMacAddress,
                     username,
                     password,
                 }),
