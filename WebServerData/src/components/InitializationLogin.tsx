@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-export default function InitializationLogin({ isRegistered, isAuthenticated }: { isRegistered: any, isAuthenticated: any }) {
+export default function InitializationLogin({ isRegistered, isAuthenticated }: { isRegistered: any; isAuthenticated: any }) {
     const [adminMacAddress, setAdminMacAddress] = useState("");
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -30,6 +30,12 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
             });
 
             if (API_RESPONSE.ok) {
+                const INTERNAL_API_RESPONSE = await fetch("/api/auth/register", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        adminMacAddress,
+                    }),
+                });
                 isAuthenticated(true);
                 isRegistered(true);
             }

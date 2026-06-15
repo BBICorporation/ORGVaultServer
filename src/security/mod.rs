@@ -39,10 +39,6 @@ pub fn VerifySecurityRequirements() -> Result<(), String> {
     println!("\t## Checking encryption key file...");
     if Path::new(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION).exists() {
         println!("\t\t### Encryption key file exists!");
-
-        // Setting state based on existance
-        crate::rebuildFrontendStatus.swap(false, Ordering::SeqCst);
-        crate::isInitialized.swap(true, Ordering::SeqCst);
     } else {
         println!(
             "{0} {1}",

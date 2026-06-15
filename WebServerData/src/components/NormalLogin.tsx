@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any }) {
     const [adminMacAddress, setAdminMacAddress] = useState("");
@@ -9,6 +9,8 @@ export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any 
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    useEffect(() => (console.log(`Backend API URL: ${process.env.NEXT_PUBLIC_BACKEND_API_URL}`), console.log(`Key Bin Hash: ${process.env.NEXT_PUBLIC_KEY_BIN_HASH}`)), []);
 
     async function handleFormSubmission(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();

@@ -3,6 +3,7 @@ use aes_gcm::{Aes256Gcm, Nonce};
 use colored::*;
 use rand::RngCore;
 use std::io::{Error, ErrorKind, Write};
+use std::process::Command;
 
 // GenerateConfigEncryptionKey function
 pub fn GenerateConfigEncryptionKey() -> Result<(), Error> {
@@ -26,6 +27,35 @@ pub fn GenerateConfigEncryptionKey() -> Result<(), Error> {
     })?;
 
     Ok(())
+}
+
+// ConfigEncryptionKeyHash function
+pub fn ConfigEncryptionKeyHash() -> Result<String, ()> {
+    // Running command and returning output
+    let COMMAND_OUTPUT = Command::new("sha256sum")
+        .arg(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)
+        .output()
+        .map_err(|e| {
+            Error::new(
+                ErrorKind::Other,
+                format!("{} {:?}", "Error running sha256sum:".red(), e),
+            )
+        })
+        .unwrap()
+        .stdout;
+    let COMMAND_OUTPUT = String::from_utf8(COMMAND_OUTPUT).unwrap();
+    let HASH_OUTPUT: String = match COMMAND_OUTPUT.split_whitespace().next() {
+        Some(HASH) => String::from(HASH),
+        _ => "None".to_string(),
+    };
+
+    // Error
+    if HASH_OUTPUT == "None" {
+        return Err(());
+    }
+
+    // Return
+    Ok(HASH_OUTPUT)
 }
 
 // Encrypt data function

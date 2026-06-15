@@ -1,4 +1,4 @@
-use crate::server;
+use crate::{security, server};
 use actix_cors::Cors;
 use actix_web::{App, HttpResponse, HttpServer, http, web};
 use colored::*;
@@ -6,6 +6,7 @@ use local_ip_address::local_ip;
 use serde::Deserialize;
 use serde_json::json;
 use std::{
+    collections::HashMap,
     process::{Child, Command, Stdio},
     sync::atomic,
     time::Instant,
@@ -45,6 +46,14 @@ pub async fn RunWebServerBackend() -> Result<(), std::io::Error> {
 
 // Run web frontend server
 pub fn RunWebServerFrontend() -> std::io::Result<Child> {
+    // Environment variables
+    let ENV_API = format!("http://{0}:3100", local_ip().unwrap());
+    let ENV_HASH = security::encryptionHandler::ConfigEncryptionKeyHash().unwrap();
+
+    let mut envsHashMap: HashMap<String, String> = HashMap::new();
+    envsHashMap.insert("NEXT_PUBLIC_BACKEND_API_URL".to_string(), ENV_API);
+    envsHashMap.insert("NEXT_PUBLIC_KEY_BIN_HASH".to_string(), ENV_HASH);
+
     // Checking if node_modules exists
     if !std::path::Path::new(&*crate::WEB_FRONTEND_DATA_FILE)
         .join("node_modules")
@@ -76,10 +85,7 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
         Command::new("yarn")
             .args(&["dev", "-p", &server::WEB_SERVER_FRONTEND_PORT.to_string()])
             .current_dir(&*crate::WEB_FRONTEND_DATA_FILE)
-            .env(
-                "NEXT_PUBLIC_BACKEND_API_URL",
-                format!("http://{0}:3100", local_ip().unwrap()),
-            )
+            .envs(&envsHashMap)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .spawn()
@@ -92,10 +98,7 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
             Command::new("yarn")
                 .args(&["--silent", "build"])
                 .current_dir(&*crate::WEB_FRONTEND_DATA_FILE)
-                .env(
-                    "NEXT_PUBLIC_BACKEND_API_URL",
-                    format!("http://{0}:3100", local_ip().unwrap()),
-                )
+                .envs(&envsHashMap)
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
                 .status()
@@ -122,10 +125,7 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
                 &server::WEB_SERVER_FRONTEND_PORT.to_string(),
             ])
             .current_dir(&*crate::WEB_FRONTEND_DATA_FILE)
-            .env(
-                "NEXT_PUBLIC_BACKEND_API_URL",
-                format!("http://{0}:3100", local_ip().unwrap()),
-            )
+            .envs(&envsHashMap)
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .spawn()
