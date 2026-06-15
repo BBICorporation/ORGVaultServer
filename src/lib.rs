@@ -1,6 +1,7 @@
 #![allow(nonstandard_style)]
 
-use serde::Serialize;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::{
     env,
     sync::{LazyLock, atomic::AtomicBool},
@@ -39,6 +40,9 @@ pub static WEB_FRONTEND_DATA_FILE: LazyLock<String> = LazyLock::new(|| {
     }
 });
 
+pub static MAC_ADDRESS_FORMAT: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$").unwrap());
+
 // Mutable variables
 pub static rebuildFrontendStatus: AtomicBool = AtomicBool::new(true);
 pub static isInitialized: AtomicBool = AtomicBool::new(false);
@@ -51,12 +55,12 @@ pub struct ConfigFileReturnValue {
 }
 
 // Server config file data
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct ServerConfigFile {
-    pub adminDetails: Vec<SCFAdminDetails>,
+    pub adminDetails: SCFAdminDetails,
 }
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct SCFAdminDetails {
     pub macAddress: String,
     pub username: String,

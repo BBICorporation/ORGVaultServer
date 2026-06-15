@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any }) {
     const [adminMacAddress, setAdminMacAddress] = useState("");
@@ -10,8 +10,6 @@ export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    useEffect(() => (console.log(`Backend API URL: ${process.env.NEXT_PUBLIC_BACKEND_API_URL}`), console.log(`Key Bin Hash: ${process.env.NEXT_PUBLIC_KEY_BIN_HASH}`)), []);
-
     async function handleFormSubmission(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
 
@@ -19,6 +17,28 @@ export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any 
 
         // Calling api
         try {
+            // Validating format
+            const ADMIN_MAC_FORMAT = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
+
+            if (!adminMacAddress || !ADMIN_MAC_FORMAT.test(adminMacAddress)) {
+                setError("Invalid mac address format");
+                return;
+            }
+
+            if (!username || /\s/.test(username)) {
+                setError("Username cannot contain spaces");
+                return;
+            }
+
+            if (!password) {
+                setError("Password cannot be empty");
+                return;
+            }
+
+            // Removing error
+            setError("");
+
+            // Calling api
             const API_RESPONSE = await fetch("/api/auth/login", {
                 method: "POST",
                 headers: {
@@ -34,6 +54,9 @@ export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any 
             if (API_RESPONSE.ok) {
                 isAuthenticated(true);
             }
+
+            const RESPONSE_DATA = await API_RESPONSE.json();
+            setError(RESPONSE_DATA.response);
         } catch (e) {
             setError("Their was error logging in");
         } finally {
@@ -65,7 +88,7 @@ export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any 
                                 type="text"
                                 placeholder="00:1A:2B:3C:4D:5E"
                                 value={adminMacAddress}
-                                onChange={(e) => setAdminMacAddress(e.target.value)}
+                                onChange={(e) => setAdminMacAddress(e.target.value.toUpperCase())}
                                 className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-4 py-3 text-white placeholder:text-white/30 outline-none focus:border-[#1793d1] focus:ring-2 focus:ring-[#1793d1]/20 transition placeholder:select-none"
                                 required
                             />

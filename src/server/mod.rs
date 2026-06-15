@@ -1,8 +1,10 @@
 pub mod webServer;
+pub mod webServerEndpoints;
 use std::{
     io::{Read, Write},
     net::Ipv4Addr,
     sync::atomic::Ordering,
+    fs,
 };
 
 use crate::security::encryptionHandler::EncryptData;
@@ -15,7 +17,7 @@ pub const WEB_SERVER_FRONTEND_PORT: u16 = 3000;
 
 // Config file checking / creation
 pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, std::io::Error> {
-    return match std::fs::OpenOptions::new()
+    return match fs::OpenOptions::new()
         .read(true)
         .write(true)
         .open(&*crate::GLOBAL_PROGRAM_CONFIG_FILE)
@@ -34,11 +36,11 @@ pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, std::io:
                 if let Some(PARENT) =
                     std::path::Path::new(&*crate::GLOBAL_PROGRAM_CONFIG_FILE).parent()
                 {
-                    std::fs::create_dir_all(PARENT).expect("Error creating parent directories");
+                    fs::create_dir_all(PARENT).expect("Error creating parent directories");
                 }
 
                 // Creating file
-                let CF: std::fs::File = std::fs::File::create(&*crate::GLOBAL_PROGRAM_CONFIG_FILE)
+                let CF: fs::File = fs::File::create(&*crate::GLOBAL_PROGRAM_CONFIG_FILE)
                     .expect("Error creating global config file");
 
                 Ok(crate::ConfigFileReturnValue {
@@ -64,22 +66,22 @@ pub fn InitializeConfigFile(
     PASSWORD: String,
 ) -> Result<(), std::io::Error> {
     // Creating config file
-    let mut configFile: std::fs::File = CreateReturnConfigFile()?.file;
+    let mut configFile: fs::File = CreateReturnConfigFile()?.file;
 
     // Creating config file data
     let CONFIG_FILE_DATA: crate::ServerConfigFile = crate::ServerConfigFile {
-        adminDetails: vec![crate::SCFAdminDetails {
+        adminDetails: crate::SCFAdminDetails {
             macAddress: MAC_ADDRESS,
             username: USERNAME,
             password: PASSWORD,
-        }],
+        },
     };
 
     // Converting to JSON
     let JSON = serde_json::to_string_pretty(&CONFIG_FILE_DATA)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
 
-    let mut keyFile = std::fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)?;
+    let mut keyFile: fs::File = fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)?;
 
     let mut keyFileDataBuffer = Vec::new();
     keyFile.read_to_end(&mut keyFileDataBuffer)?;

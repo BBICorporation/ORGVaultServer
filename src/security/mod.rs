@@ -27,9 +27,9 @@ pub fn VerifySecurityRequirements() -> Result<(), String> {
             }
             Err(e) => {
                 return Err(format!(
-                    "{0} {1}",
-                    "Error getting config file: ".red(),
-                    e.to_string().red()
+                    "{0} {1:?}",
+                    "Error getting config file | VerifySecurityRequirements | e:std::io::Error:  ".red(),
+                    e
                 ));
             }
         };
@@ -51,8 +51,8 @@ pub fn VerifySecurityRequirements() -> Result<(), String> {
             }
             Err(e) => {
                 return Err(format!(
-                    "{0} {1}",
-                    "Error generating encryption key file: ".red(),
+                    "{0} {1:?}",
+                    "Error generating encryption key file | VerifySecurityRequirements | e:std::io::Error:  ".red(),
                     e
                 ));
             }

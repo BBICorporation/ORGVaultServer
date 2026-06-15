@@ -17,6 +17,28 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
 
         // Calling api
         try {
+            // Validating format
+            const ADMIN_MAC_FORMAT = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/;
+
+            if (!adminMacAddress || !ADMIN_MAC_FORMAT.test(adminMacAddress)) {
+                setError("Invalid mac address format");
+                return;
+            }
+
+            if (!username || /\s/.test(username)) {
+                setError("Username cannot contain spaces");
+                return;
+            }
+
+            if (!password) {
+                setError("Password cannot be empty");
+                return;
+            }
+
+            // Removing error
+            setError("");
+
+            // Calling api
             const API_RESPONSE = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/backend/initializeServer`, {
                 method: "POST",
                 headers: {
@@ -36,9 +58,20 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
                         adminMacAddress,
                     }),
                 });
+
+                const INTERNAL_API_RESPONSE_DATA = await INTERNAL_API_RESPONSE.json();
+
+                if (!INTERNAL_API_RESPONSE.ok) {
+                    setError(INTERNAL_API_RESPONSE_DATA.response);
+                    return;
+                }
+
                 isAuthenticated(true);
                 isRegistered(true);
             }
+
+            const RESPONSE_DATA = await API_RESPONSE.json();
+            setError(RESPONSE_DATA.response);
         } catch (e) {
             setError("Their was error registering the server");
         } finally {
@@ -70,7 +103,7 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
                                 type="text"
                                 placeholder="00:1A:2B:3C:4D:5E"
                                 value={adminMacAddress}
-                                onChange={(e) => setAdminMacAddress(e.target.value)}
+                                onChange={(e) => setAdminMacAddress(e.target.value.toUpperCase())}
                                 className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-4 py-3 text-white placeholder:text-white/30 outline-none focus:border-[#1793d1] focus:ring-2 focus:ring-[#1793d1]/20 transition placeholder:select-none"
                                 required
                             />

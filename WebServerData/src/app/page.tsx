@@ -45,13 +45,12 @@ export default function Home() {
             }
 
             try {
-                // const API_RESPONSE = await fetch("/api/auth/verify", {
-                //     method: "GET",
-                //     credentials: "include",
-                // });
+                const API_RESPONSE = await fetch("/api/auth/verifyLogin", {
+                    method: "GET",
+                    credentials: "include",
+                });
 
-                // if (API_RESPONSE.ok) {
-                if(false) {
+                if (API_RESPONSE.ok) {
                     setIsAuthenticated(true);
                 }
             } catch (err) {
@@ -65,7 +64,7 @@ export default function Home() {
     }, [needsInitialization]);
 
     // Loading State
-    if (isCheckingInit) {
+    if (isCheckingInit || isCheckingAuth) {
         return <LoadingScreen error={initCheckError} />;
     }
 

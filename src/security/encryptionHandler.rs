@@ -15,14 +15,22 @@ pub fn GenerateConfigEncryptionKey() -> Result<(), Error> {
         std::fs::File::create(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION).map_err(|e| {
             Error::new(
                 ErrorKind::Other,
-                format!("{} {:?}", "Error creating key file:".red(), e),
+                format!(
+                    "{0} {1:?}",
+                    "Generate Config Encryption Key Error (file creation) | GenerateConfigEncryptionKey | e:std::io::Error:  ".red(),
+                    e
+                ),
             )
         })?;
 
     file.write_all(&key).map_err(|e| {
         Error::new(
             ErrorKind::Other,
-            format!("{} {:?}", "Error writing key file:".red(), e),
+            format!(
+                "{0} {1:?}",
+                "Generate Config Encryption Key Error (file writting) | GenerateConfigEncryptionKey | e:std::io::Error:  ".red(),
+                e
+            ),
         )
     })?;
 
@@ -36,10 +44,12 @@ pub fn ConfigEncryptionKeyHash() -> Result<String, ()> {
         .arg(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)
         .output()
         .map_err(|e| {
-            Error::new(
-                ErrorKind::Other,
-                format!("{} {:?}", "Error running sha256sum:".red(), e),
-            )
+            println!(
+                "{0} {1:?}",
+                "Config Encryption Key Hash Error | ConfigEncryptionKeyHash | e:std::io::Error:  ".red(),
+                e
+            );
+            return ();
         })
         .unwrap()
         .stdout;
@@ -71,7 +81,11 @@ pub fn EncryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
     let CIPHER = Aes256Gcm::new_from_slice(KEY).map_err(|e| {
         Error::new(
             ErrorKind::Other,
-            format!("{} {:?}", "Error creating cipher:".red(), e),
+            format!(
+                "{0} {1:?}",
+                "Encrypt Data Error (creating cipher) | EncryptData | e:aes_gcm::aead::Error:  ".red(),
+                e
+            ),
         )
     })?;
 
@@ -82,7 +96,16 @@ pub fn EncryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
 
     let CIPHER_TEXT = CIPHER
         .encrypt(NONCE, DATA)
-        .map_err(|e| Error::new(ErrorKind::Other, format!("{:?}", e)))?;
+        .map_err(|e| {
+            Error::new(
+                ErrorKind::Other,
+                format!(
+                    "{0} {1:?}",
+                    "Encrypt Data Error (encrypting) | EncryptData | e:aes_gcm::aead::Error:  ".red(),
+                    e
+                ),
+            )
+        })?;
 
     let mut output = Vec::new();
     output.extend_from_slice(&nonceBytes);
@@ -102,7 +125,16 @@ pub fn DecryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
         ));
     }
 
-    let CIPHER = Aes256Gcm::new_from_slice(KEY).map_err(|e| Error::new(ErrorKind::Other, e))?;
+    let CIPHER = Aes256Gcm::new_from_slice(KEY).map_err(|e| {
+        Error::new(
+            ErrorKind::Other,
+            format!(
+                "{0} {1:?}",
+                "Decrypt Data Error (creating cipher) | DecryptData | e:aes_gcm::aead::Error:  ".red(),
+                e
+            ),
+        )
+    })?;
 
     let (NONCE_BYTE, CIPHER_TEXT) = DATA.split_at(12);
     let NONCE = Nonce::from_slice(NONCE_BYTE);
@@ -110,7 +142,11 @@ pub fn DecryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
     CIPHER.decrypt(NONCE, CIPHER_TEXT).map_err(|e| {
         Error::new(
             ErrorKind::Other,
-            format!("{} {:?}", "Error decrypting data:".red(), e),
+            format!(
+                "{0} {1:?}",
+                "Error decrypting data | DecryptData | e:aes_gcm::aead::Error:  ".red(),
+                e
+            ),
         )
     })
 }

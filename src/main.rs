@@ -12,7 +12,11 @@ fn main() -> std::io::Result<()> {
     match RunAsRoot() {
         Ok(_) => {}
         Err(e) => {
-            println!("{0} {1}", "Error: ".red(), e);
+            println!(
+                "{0} {1:?}",
+                "Run as Root Error | main | e:std::io::Error:  ".red(),
+                e
+            );
             return Ok(());
         }
     }
@@ -24,7 +28,11 @@ fn main() -> std::io::Result<()> {
             println!("{0}", "  ## Security check passed!\n".green());
         }
         Err(e) => {
-            println!("{0} {1}", "Error: ".red(), e);
+            println!(
+                "{0} {1:?}",
+                "Verify Security Requirements Error | main | e:String:  ".red(),
+                e
+            );
             std::process::exit(1);
         }
     }
@@ -83,7 +91,11 @@ fn RunAsRoot() -> std::io::Result<()> {
         .arg(std::env::current_exe().map_err(|e| {
             std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("{} {:?}", "Error getting current exe:".red(), e),
+                format!(
+                    "{0} {1:?}",
+                    "Error getting current exe | RunAsRoot | e:std::io::Error:  ".red(),
+                    e
+                ),
             )
         })?)
         .args(std::env::args().skip(1))

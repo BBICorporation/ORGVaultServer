@@ -1,15 +1,15 @@
-use crate::{security, server};
+use crate::{
+    security,
+    server::{self, webServerEndpoints},
+};
 use actix_cors::Cors;
-use actix_web::{App, HttpResponse, HttpServer, http, web};
+use actix_web::{App, HttpServer, http, web};
 use colored::*;
 use local_ip_address::local_ip;
-use serde::Deserialize;
-use serde_json::json;
 use std::{
     collections::HashMap,
     process::{Child, Command, Stdio},
     sync::atomic,
-    time::Instant,
 };
 
 // Run web backend server
@@ -37,7 +37,11 @@ pub async fn RunWebServerBackend() -> Result<(), std::io::Error> {
     .map_err(|e| {
         std::io::Error::new(
             std::io::ErrorKind::Other,
-            format!("{} {:?}", "Error binding server and port:".red(), e),
+            format!(
+                "{0} {1:?}",
+                "Error binding server and port | RunWebServerBackend | e:std::io::Error:  ".red(),
+                e
+            ),
         )
     })?
     .run()
@@ -47,12 +51,15 @@ pub async fn RunWebServerBackend() -> Result<(), std::io::Error> {
 // Run web frontend server
 pub fn RunWebServerFrontend() -> std::io::Result<Child> {
     // Environment variables
-    let ENV_API = format!("http://{0}:3100", local_ip().unwrap());
-    let ENV_HASH = security::encryptionHandler::ConfigEncryptionKeyHash().unwrap();
-
     let mut envsHashMap: HashMap<String, String> = HashMap::new();
-    envsHashMap.insert("NEXT_PUBLIC_BACKEND_API_URL".to_string(), ENV_API);
-    envsHashMap.insert("NEXT_PUBLIC_KEY_BIN_HASH".to_string(), ENV_HASH);
+    envsHashMap.insert(
+        "NEXT_PUBLIC_BACKEND_API_URL".to_string(),
+        format!("http://{0}:3100", local_ip().unwrap()),
+    );
+    envsHashMap.insert(
+        "KEY_BIN_HASH".to_string(),
+        security::encryptionHandler::ConfigEncryptionKeyHash().unwrap(),
+    );
 
     // Checking if node_modules exists
     if !std::path::Path::new(&*crate::WEB_FRONTEND_DATA_FILE)
@@ -105,7 +112,11 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
                 .map_err(|e| {
                     std::io::Error::new(
                         std::io::ErrorKind::Other,
-                        format!("{} {:?}", "Frontend build/start error:".red(), e),
+                        format!(
+                            "{0} {1:?}",
+                            "Frontend build/start error | RunWebServerFrontend | e:std::io::Error:  ".red(),
+                            e
+                        ),
                     )
                 })?;
         }
@@ -134,61 +145,17 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
 
 // Configuring API endpoints
 fn ConfigureAPIEndpoints(cfg: &mut web::ServiceConfig) {
-    cfg.route("/api/backend/ping", web::get().to(HandlePingEndpoint));
+    cfg.route("/api/backend/ping", web::get().to(webServerEndpoints::HandlePingEndpoint));
     cfg.route(
         "/api/backend/initializedStatus",
-        web::get().to(HandleInitializedStatusEndpoint),
+        web::get().to(webServerEndpoints::HandleInitializedStatusEndpoint),
     );
     cfg.route(
         "/api/backend/initializeServer",
-        web::post().to(HandleInitializeServerEndpoint),
+        web::post().to(webServerEndpoints::HandleInitializeServerEndpoint),
     );
-}
-
-// Handling ping endpoint
-async fn HandlePingEndpoint() -> HttpResponse {
-    let START = Instant::now();
-    let RESPONSE_TIME_MS = START.elapsed().as_millis();
-
-    HttpResponse::Ok().json(json!({
-        "message": "pong",
-        "RESPONSE_TIME_MS": RESPONSE_TIME_MS
-    }))
-}
-
-// Handling initialized status endpoint
-async fn HandleInitializedStatusEndpoint() -> HttpResponse {
-    if crate::isInitialized.load(atomic::Ordering::SeqCst) {
-        return HttpResponse::Ok().finish();
-    } else {
-        return HttpResponse::NotImplemented().finish();
-    }
-}
-
-// Handling initialize server endpoint
-#[derive(Deserialize)]
-struct InitializeRequest {
-    adminMacAddress: String,
-    username: String,
-    password: String,
-}
-
-async fn HandleInitializeServerEndpoint(req: web::Json<InitializeRequest>) -> HttpResponse {
-    // Safely extract headers without unwrapping
-    let MAC_ADDRESS = &req.adminMacAddress;
-    let USERNAME = &req.username;
-    let PASSWORD = &req.password;
-
-    println!("macAddress: {:?}", MAC_ADDRESS);
-    println!("username: {:?}", USERNAME);
-    println!("password: {:?}", PASSWORD);
-
-    // Initialize config file
-    match server::InitializeConfigFile(MAC_ADDRESS.clone(), USERNAME.clone(), PASSWORD.clone()) {
-        Ok(_) => return HttpResponse::Ok().finish(),
-        Err(e) => {
-            println!("{0} {1}", "Error: ".red(), e);
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
+    cfg.route(
+        "/api/backend/verifyAdminMac",
+        web::post().to(webServerEndpoints::HandleVerifyAdminMacEndpoint),
+    );
 }
