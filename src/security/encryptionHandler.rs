@@ -2,7 +2,6 @@ use aes_gcm::aead::{Aead, KeyInit, OsRng};
 use aes_gcm::{Aes256Gcm, Nonce};
 use colored::*;
 use rand::RngCore;
-use serde::Deserialize;
 use std::{
     fs,
     io::{Error, ErrorKind, Read, Write},

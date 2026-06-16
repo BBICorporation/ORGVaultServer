@@ -4,7 +4,7 @@ use actix_web::web;
 use colored::*;
 use serde::Deserialize;
 use serde_json::json;
-use std::{fs, io::Read, sync::atomic};
+use std::sync::atomic;
 use tokio::time::Instant;
 
 // Handling ping endpoint
