@@ -19,7 +19,7 @@ export default function Home() {
     useEffect(() => {
         async function checkInitialization() {
             try {
-                const API_RESPONSE = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/backend/initializedStatus`);
+                const API_RESPONSE = await fetch("/api/verifyInitializedStatus");
 
                 await new Promise((r) => setTimeout(r, 3000));
 

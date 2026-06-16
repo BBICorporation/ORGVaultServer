@@ -14,11 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const DECODED = jwt.verify(TOKEN, KEY_BIN_HASH) as {
-            MAC_ADDRESS: string;
-            iat: number;
-            exp: number;
-        };
+        const DECODED = jwt.verify(TOKEN, KEY_BIN_HASH) as { MAC_ADDRESS: string };
 
         return NextResponse.json(
             {

@@ -23,18 +23,32 @@ pub async fn HandleInitializedStatusEndpoint() -> HttpResponse {
     if crate::isInitialized.load(atomic::Ordering::SeqCst) {
         return HttpResponse::Ok().finish();
     } else {
-        return HttpResponse::NotImplemented().finish();
+        return HttpResponse::InternalServerError().finish();
     }
 }
 
 // Handling initialize server endpoint
+#[derive(Deserialize)]
+pub struct SCFAdminDetailsExtendedFLNR {
+    #[serde(flatten)]
+    admin: crate::SCFAdminDetails,
+    pub keyBinHash: String,
+}
 pub async fn HandleInitializeServerEndpoint(
-    req: web::Json<crate::SCFAdminDetails>,
+    req: web::Json<SCFAdminDetailsExtendedFLNR>,
 ) -> HttpResponse {
     // Safely extract headers without unwrapping
-    let MAC_ADDRESS = &req.macAddress;
-    let USERNAME = &req.username;
-    let PASSWORD = &req.password;
+    let MAC_ADDRESS = &req.admin.macAddress;
+    let USERNAME = &req.admin.username;
+    let PASSWORD = &req.admin.password;
+    let KEY_BIN_HASH = &req.keyBinHash;
+
+    // Verifying hash
+    if let Ok(ACTUAL_KEY_BIN_HASH) = security::encryptionHandler::ConfigEncryptionKeyHash() {
+        if KEY_BIN_HASH != &ACTUAL_KEY_BIN_HASH {
+            return HttpResponse::Unauthorized().json(json!({"response": "Invalid key bin hash"}));
+        }
+    }
 
     // Format checking
     if MAC_ADDRESS == "" || !crate::MAC_ADDRESS_FORMAT.is_match(MAC_ADDRESS) {
@@ -62,67 +76,22 @@ pub async fn HandleInitializeServerEndpoint(
     };
 }
 
-// Handling verify admin mac endpoint
-#[derive(Deserialize)]
-pub struct VerifyAdminMacRequest {
-    adminMacAddress: String,
-    keyBinHash: String,
-}
-
-pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>) -> HttpResponse {
-    // Safely extract headers without unwrapping
-    let MAC_ADDRESS = &req.adminMacAddress;
-    let KEY_BIN_HASH = &req.keyBinHash;
-
-    // Format checking
-    if MAC_ADDRESS == "" || !crate::MAC_ADDRESS_FORMAT.is_match(MAC_ADDRESS) {
-        return HttpResponse::Unauthorized().json(json!({"response": "Invalid admin mac address"}));
-    }
-
-    // Verifying hash
-    let ACTUAL_KEY_BIN_HASH = match security::encryptionHandler::ConfigEncryptionKeyHash() {
-        Ok(hash) => hash,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (ACTUAL_KEY_BIN_HASH) | HandleVerifyAdminMacEndpoint | E:():  ".red(),
-                E
-            );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    if KEY_BIN_HASH != &ACTUAL_KEY_BIN_HASH {
-        return HttpResponse::Unauthorized().json(json!({"response": "Invalid key bin hash"}));
-    }
-
-    // Decrypting data
-    let DECRYPTED_DATA: crate::ServerConfigFile = match security::encryptionHandler::DecryptData() {
-        Ok(DATA) => DATA,
-        Err(_) => {
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    // Checking if admin mac is valid
-    if &DECRYPTED_DATA.adminDetails.macAddress != MAC_ADDRESS {
-        return HttpResponse::Unauthorized().json(json!({"response": "Invalid admin mac address"}));
-    }
-
-    // Return
-    HttpResponse::Ok().finish()
-}
-
 // Handling login verification endpoint
 pub async fn HandleLoginVerificationEndpoint(
-    req: web::Json<crate::SCFAdminDetails>,
+    req: web::Json<SCFAdminDetailsExtendedFLNR>,
 ) -> HttpResponse {
     // Safely extract headers without unwrapping
-    let MAC_ADDRESS = &req.macAddress;
-    let USERNAME = &req.username;
-    let PASSWORD = &req.password;
+    let MAC_ADDRESS = &req.admin.macAddress;
+    let USERNAME = &req.admin.username;
+    let PASSWORD = &req.admin.password;
+    let KEY_BIN_HASH = &req.keyBinHash;
+
+    // Verifying hash
+    if let Ok(ACTUAL_KEY_BIN_HASH) = security::encryptionHandler::ConfigEncryptionKeyHash() {
+        if KEY_BIN_HASH != &ACTUAL_KEY_BIN_HASH {
+            return HttpResponse::Unauthorized().json(json!({"response": "Invalid key bin hash"}));
+        }
+    }
 
     // Format checking
     if MAC_ADDRESS == "" || !crate::MAC_ADDRESS_FORMAT.is_match(MAC_ADDRESS) {

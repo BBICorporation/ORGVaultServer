@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     // Verifying login data
     try {
-        const BACKEND_API_RESPONSE = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/backend/loginVerification`, {
+        const BACKEND_API_RESPONSE = await fetch(`${process.env.BACKEND_API_URL}/api/backend/loginVerification`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
                 macAddress: MAC_ADDRESS,
                 username: USERNAME,
                 password: PASSWORD,
+                keyBinHash: KEY_BIN_HASH,
             }),
         });
 

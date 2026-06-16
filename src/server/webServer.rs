@@ -53,7 +53,7 @@ pub fn RunWebServerFrontend() -> std::io::Result<Child> {
     // Environment variables
     let mut envsHashMap: HashMap<String, String> = HashMap::new();
     envsHashMap.insert(
-        "NEXT_PUBLIC_BACKEND_API_URL".to_string(),
+        "BACKEND_API_URL".to_string(),
         format!("http://{0}:3100", local_ip().unwrap()),
     );
     envsHashMap.insert(
@@ -153,10 +153,6 @@ fn ConfigureAPIEndpoints(cfg: &mut web::ServiceConfig) {
     cfg.route(
         "/api/backend/initializeServer",
         web::post().to(HandleInitializeServerEndpoint),
-    );
-    cfg.route(
-        "/api/backend/verifyAdminMac",
-        web::post().to(HandleVerifyAdminMacEndpoint),
     );
     cfg.route(
         "/api/backend/loginVerification",

@@ -38,37 +38,24 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
             // Removing error
             setError("");
 
-            // Calling api
-            const API_RESPONSE = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/api/backend/initializeServer`, {
+            // Registering
+            const API_RESPONSE = await fetch("/api/auth/register", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
                 body: JSON.stringify({
-                    macAddress: adminMacAddress,
+                    adminMacAddress,
                     username,
                     password,
                 }),
             });
 
-            if (API_RESPONSE.ok) {
-                const INTERNAL_API_RESPONSE = await fetch("/api/auth/register", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        adminMacAddress,
-                    }),
-                });
-
-                const INTERNAL_API_RESPONSE_DATA = await INTERNAL_API_RESPONSE.json();
-
-                if (!INTERNAL_API_RESPONSE.ok) {
-                    setError(INTERNAL_API_RESPONSE_DATA.response);
-                    return;
-                }
-
-                isAuthenticated(true);
-                isRegistered(true);
+            if (!API_RESPONSE.ok) {
+                const API_RESPONSE_DATA = await API_RESPONSE.json();
+                setError(API_RESPONSE_DATA.response);
+                return;
             }
+
+            isAuthenticated(true);
+            isRegistered(true);
 
             const RESPONSE_DATA = await API_RESPONSE.json();
             setError(RESPONSE_DATA.response);
