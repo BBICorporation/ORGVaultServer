@@ -153,5 +153,6 @@ pub async fn HandleLoginVerificationEndpoint(
         return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
     }
 
+    // Return
     HttpResponse::Ok().finish()
 }
