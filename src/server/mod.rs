@@ -1,10 +1,10 @@
 pub mod webServer;
 pub mod webServerEndpoints;
 use std::{
+    fs,
     io::{Read, Write},
     net::Ipv4Addr,
     sync::atomic::Ordering,
-    fs,
 };
 
 use crate::security::encryptionHandler::EncryptData;
@@ -79,7 +79,7 @@ pub fn InitializeConfigFile(
 
     // Converting to JSON
     let JSON = serde_json::to_string_pretty(&CONFIG_FILE_DATA)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        .map_err(|E| std::io::Error::new(std::io::ErrorKind::Other, E))?;
 
     let mut keyFile: fs::File = fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)?;
 

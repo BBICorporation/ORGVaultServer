@@ -97,63 +97,10 @@ pub async fn HandleVerifyAdminMacEndpoint(req: web::Json<VerifyAdminMacRequest>)
         return HttpResponse::Unauthorized().json(json!({"response": "Invalid key bin hash"}));
     }
 
-    // Verifying admin mac
-    let mut configFile: fs::File = match fs::File::open(&*crate::GLOBAL_PROGRAM_CONFIG_FILE) {
-        Ok(FILE) => FILE,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (configFile) | HandleVerifyAdminMacEndpoint:  ".red(),
-                E
-            );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-    let mut keyFile: fs::File = match fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION) {
-        Ok(FILE) => FILE,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (keyFile) | HandleVerifyAdminMacEndpoint:  ".red(),
-                E
-            );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    let mut configFileDataBuffer = Vec::new();
-    let _ = configFile.read_to_end(&mut configFileDataBuffer);
-
-    let mut keyFileDataBuffer = Vec::new();
-    let _ = keyFile.read_to_end(&mut keyFileDataBuffer);
-
     // Decrypting data
-    let DECRYPTED_DATA: Vec<u8> = match security::encryptionHandler::DecryptData(
-        &configFileDataBuffer,
-        &keyFileDataBuffer,
-    ) {
+    let DECRYPTED_DATA: crate::ServerConfigFile = match security::encryptionHandler::DecryptData() {
         Ok(DATA) => DATA,
-        Err(E) => {
-            println!(
-                    "{0} {1:?}",
-                    "Verify Admin Mac Address Endpoint Error (DECRYPTED_DATA: Vec<u8>) | HandleVerifyAdminMacEndpoint:  ".red(),
-                    E
-                );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    let DECRYPTED_DATA: crate::ServerConfigFile = match serde_json::from_slice(&DECRYPTED_DATA) {
-        Ok(DATA) => DATA,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Verify Admin Mac Address Endpoint Error (DECRYPTED_DATA: crate::ServerConfigFile) | HandleVerifyAdminMacEndpoint:  ".red(),
-                E
-            );
+        Err(_) => {
             return HttpResponse::InternalServerError()
                 .json(json!({"response": "Internal Server Error"}));
         }
@@ -182,64 +129,10 @@ pub async fn HandleLoginVerificationEndpoint(
         return HttpResponse::Unauthorized().json(json!({"response": "Invalid admin mac address"}));
     }
 
-    let mut configFile = match fs::File::open(&*crate::GLOBAL_PROGRAM_CONFIG_FILE) {
-        Ok(FILE) => FILE,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Login Verification Endpoint Error (configFile) | HandleLoginVerificationEndpoint:  ".red(),
-                E
-            );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    let mut keyFile = match fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION) {
-        Ok(FILE) => FILE,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Login Verification Endpoint Error (keyFile) | HandleLoginVerificationEndpoint:  "
-                    .red(),
-                E
-            );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    let mut configFileDataBuffer = Vec::new();
-    let _ = configFile.read_to_end(&mut configFileDataBuffer);
-
-    let mut keyFileDataBuffer = Vec::new();
-    let _ = keyFile.read_to_end(&mut keyFileDataBuffer);
-
     // Decrypting data
-    let DECRYPTED_DATA: Vec<u8> = match security::encryptionHandler::DecryptData(
-        &configFileDataBuffer,
-        &keyFileDataBuffer,
-    ) {
+    let DECRYPTED_DATA: crate::ServerConfigFile = match security::encryptionHandler::DecryptData() {
         Ok(DATA) => DATA,
-        Err(E) => {
-            println!(
-                    "{0} {1:?}",
-                    "Login Verification Endpoint Error (DECRYPTED_DATA: Vec<u8>) | HandleLoginVerificationEndpoint:  ".red(),
-                    E
-                );
-            return HttpResponse::InternalServerError()
-                .json(json!({"response": "Internal Server Error"}));
-        }
-    };
-
-    let DECRYPTED_DATA: crate::ServerConfigFile = match serde_json::from_slice(&DECRYPTED_DATA) {
-        Ok(DATA) => DATA,
-        Err(E) => {
-            println!(
-                "{0} {1:?}",
-                "Login Verification Endpoint Error (DECRYPTED_DATA: crate::ServerConfigFile) | HandleLoginVerificationEndpoint:  ".red(),
-                E
-            );
+        Err(_) => {
             return HttpResponse::InternalServerError()
                 .json(json!({"response": "Internal Server Error"}));
         }

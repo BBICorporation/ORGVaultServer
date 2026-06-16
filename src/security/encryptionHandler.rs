@@ -2,8 +2,12 @@ use aes_gcm::aead::{Aead, KeyInit, OsRng};
 use aes_gcm::{Aes256Gcm, Nonce};
 use colored::*;
 use rand::RngCore;
-use std::io::{Error, ErrorKind, Write};
-use std::process::Command;
+use serde::Deserialize;
+use std::{
+    fs,
+    io::{Error, ErrorKind, Read, Write},
+    process::Command,
+};
 
 // GenerateConfigEncryptionKey function
 pub fn GenerateConfigEncryptionKey() -> Result<(), Error> {
@@ -78,13 +82,13 @@ pub fn EncryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
         ));
     }
 
-    let CIPHER = Aes256Gcm::new_from_slice(KEY).map_err(|e| {
+    let CIPHER = Aes256Gcm::new_from_slice(KEY).map_err(|E| {
         Error::new(
             ErrorKind::Other,
             format!(
                 "{0} {1:?}",
-                "Encrypt Data Error (creating cipher) | EncryptData | e:aes_gcm::aead::Error:  ".red(),
-                e
+                "Encrypt Data Error (creating cipher) | EncryptData:  ".red(),
+                E
             ),
         )
     })?;
@@ -94,18 +98,16 @@ pub fn EncryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
     OsRng.fill_bytes(&mut nonceBytes[..]);
     let NONCE = Nonce::from_slice(&nonceBytes[..]);
 
-    let CIPHER_TEXT = CIPHER
-        .encrypt(NONCE, DATA)
-        .map_err(|e| {
-            Error::new(
-                ErrorKind::Other,
-                format!(
-                    "{0} {1:?}",
-                    "Encrypt Data Error (encrypting) | EncryptData | e:aes_gcm::aead::Error:  ".red(),
-                    e
-                ),
-            )
-        })?;
+    let CIPHER_TEXT = CIPHER.encrypt(NONCE, DATA).map_err(|E| {
+        Error::new(
+            ErrorKind::Other,
+            format!(
+                "{0} {1:?}",
+                "Encrypt Data Error (encrypting) | EncryptData:  ".red(),
+                E
+            ),
+        )
+    })?;
 
     let mut output = Vec::new();
     output.extend_from_slice(&nonceBytes);
@@ -116,37 +118,116 @@ pub fn EncryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
 }
 
 // Decrypt data function
-pub fn DecryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
-    // Verifying data byte length
-    if DATA.len() < 12 {
-        return Err(Error::new(
-            ErrorKind::InvalidData,
-            "Data length must be greater than 12 bytes",
-        ));
-    }
+pub fn DecryptData() -> Result<crate::ServerConfigFile, Error> {
+    let mut configFile: fs::File = match fs::File::open(&*crate::GLOBAL_PROGRAM_CONFIG_FILE) {
+        Ok(FILE) => FILE,
+        Err(E) => {
+            return Err(Error::new(
+                ErrorKind::Other,
+                format!(
+                    "{0} {1:?}",
+                    "Unable to get config file Error (configFile) | DecryptData:  ".red(),
+                    E
+                ),
+            ));
+        }
+    };
+    let mut keyFile: fs::File = match fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION) {
+        Ok(FILE) => FILE,
+        Err(E) => {
+            return Err(Error::new(
+                ErrorKind::Other,
+                format!(
+                    "{0} {1:?}",
+                    "Unable to get key file Error (keyFile) | DecryptData:  ".red(),
+                    E
+                ),
+            ));
+        }
+    };
 
-    let CIPHER = Aes256Gcm::new_from_slice(KEY).map_err(|e| {
+    let mut configFileDataBuffer = Vec::new();
+    configFile
+        .read_to_end(&mut configFileDataBuffer)
+        .map_err(|E| {
+            Error::new(
+                ErrorKind::Other,
+                format!(
+                    "{0} {1:?}",
+                    "Unable to read config file | DecryptData:".red(),
+                    E
+                ),
+            )
+        })?;
+
+    let mut keyFileDataBuffer = Vec::new();
+    keyFile.read_to_end(&mut keyFileDataBuffer).map_err(|E| {
         Error::new(
             ErrorKind::Other,
             format!(
                 "{0} {1:?}",
-                "Decrypt Data Error (creating cipher) | DecryptData | e:aes_gcm::aead::Error:  ".red(),
-                e
+                "Unable to read key file | DecryptData:".red(),
+                E
             ),
         )
     })?;
 
-    let (NONCE_BYTE, CIPHER_TEXT) = DATA.split_at(12);
-    let NONCE = Nonce::from_slice(NONCE_BYTE);
+    // AES-256 requires a 32-byte key
+    if keyFileDataBuffer.len() != 32 {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            format!(
+                "{0} {1} {2}",
+                "Invalid AES-256 key length. Expected 32 bytes, found".red(),
+                keyFileDataBuffer.len(),
+                "bytes.".red(),
+            ),
+        ));
+    }
 
-    CIPHER.decrypt(NONCE, CIPHER_TEXT).map_err(|e| {
+    // Verifying configFileDataBuffer byte length
+    if configFileDataBuffer.len() < 12 {
+        return Err(Error::new(
+            ErrorKind::InvalidData,
+            format!("{0}", "Data length must be greater than 12 bytes".red()),
+        ));
+    }
+
+    let CIPHER = Aes256Gcm::new_from_slice(&keyFileDataBuffer).map_err(|E| {
         Error::new(
             ErrorKind::Other,
             format!(
                 "{0} {1:?}",
-                "Error decrypting data | DecryptData | e:aes_gcm::aead::Error:  ".red(),
-                e
+                "Decrypt Data Error (creating cipher) | DecryptData:  ".red(),
+                E
             ),
         )
-    })
+    })?;
+
+    let (NONCE_BYTE, CIPHER_TEXT) = configFileDataBuffer.split_at(12);
+    let NONCE = Nonce::from_slice(NONCE_BYTE);
+
+    let DECRYPTED_DATA = CIPHER.decrypt(NONCE, CIPHER_TEXT).map_err(|E| {
+        Error::new(
+            ErrorKind::Other,
+            format!(
+                "{0} {1:?}",
+                "Error decrypting data | DecryptData:  ".red(),
+                E
+            ),
+        )
+    })?;
+
+    let CONFIG: crate::ServerConfigFile = serde_json::from_slice(&DECRYPTED_DATA).map_err(|E| {
+        Error::new(
+            ErrorKind::Other,
+            format!(
+                "{0} {1:?}",
+                "Error deserializing decrypted config | DecryptData:".red(),
+                E
+            ),
+        )
+    })?;
+
+    Ok(CONFIG)
 }
