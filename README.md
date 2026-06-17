@@ -12,7 +12,7 @@ ORGVault is a cross platform desktop application designed to provide organizatio
 - **Strong Encryption:** All stored documents are encrypted using industry standard AES-256. SHA-256 hashes are used for file integrity checks.
 - **Two-Way Synchronization:** Seamless encrypted synchronization of files between local desktop clients and a central backend server over LAN.
 - **Offline Functionality:** Full access to stored documents is available when offline. Changes are auto-synced once connectivity is restored.
-- **Role-Based and Group-Based Access Control:** Fine grained permission settings for sharing documents securely among different users and groups.
+- **Role and Department Based Access Control:** Fine grained permission settings for sharing documents securely among different roles and departments.
 - **Audit Trails:** All file accesses, modifications, sharing actions, and synchronization events are logged securely and viewable in-browser.
 - **Ransomware Protection:** Incorporates version-controlled document backup and immutable storage to defend against tampering or deletion.
 - **Lightweight & Easy Deployment:** The application is lightweight and designed for simple deployment in organizational intranets using Rust tooling.
@@ -33,7 +33,7 @@ ORGVault is a cross platform desktop application designed to provide organizatio
 
 - **Encryption:** Uses AES-256 for all file content encryption. Keys are securely managed and never stored in plaintext.
 - **Data Integrity:** SHA-256 hashes verify file integrity during sync.
-- **Access Control:** Strict role-based access ensures only authorized users can view or modify documents.
+- **Access Control:** Strict role and department bases access ensures only authorized users can view or modify specific documents.
 - **Ransomware Defense:** Versioning and immutable backups guard against malicious data loss.
 - **Network Security:** Sync communications are limited to LAN and protected by MAC address authentication to prevent unauthorized access.
 

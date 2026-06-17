@@ -54,10 +54,19 @@ pub struct ConfigFileReturnValue {
     pub status: bool,
 }
 
-// Server config file data
+// Server config file data structure
 #[derive(Deserialize, Serialize)]
 pub struct ServerConfigFile {
+    pub serverDetails: SCFServerDetails,
     pub adminDetails: SCFAdminDetails,
+    pub managers: Vec<SCFManagers>,
+    pub folders: Vec<SCFFolders>,
+    pub employees: Vec<SCFEmployee>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SCFServerDetails {
+    pub commonEncryptionKey: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -65,4 +74,26 @@ pub struct SCFAdminDetails {
     pub macAddress: String,
     pub username: String,
     pub password: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SCFManagers {
+    pub name: String,
+    pub macAddress: String,
+    pub publicKey: String,
+    pub departments: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SCFFolders {
+    pub folderName: String,
+    pub department: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SCFEmployee {
+    pub name: String,
+    pub macAddress: String,
+    pub publicKey: String,
+    pub department: String,
 }
