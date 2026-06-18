@@ -71,6 +71,7 @@ pub struct ServerConfigFile {
 
 #[derive(Deserialize, Serialize)]
 pub struct SCFAdminDetails {
+    pub name: String,
     pub macAddress: String,
     pub username: String,
     pub password: String,

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     const REQUEST_DATA = await req.json();
+
+    const NAME = REQUEST_DATA.name;
     const MAC_ADDRESS = REQUEST_DATA.adminMacAddress;
     const USERNAME = REQUEST_DATA.username;
     const PASSWORD = REQUEST_DATA.password;
@@ -30,6 +32,7 @@ export async function POST(req: NextRequest) {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
+                name: NAME,
                 macAddress: MAC_ADDRESS,
                 username: USERNAME,
                 password: PASSWORD,

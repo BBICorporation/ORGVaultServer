@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 export default function NormalLogin({ isAuthenticated }: { isAuthenticated: any }) {
-    const [adminMacAddress, setAdminMacAddress] = useState("");
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [adminMacAddress, setAdminMacAddress] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
 
     async function handleFormSubmission(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();

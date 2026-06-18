@@ -61,9 +61,10 @@ pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, std::io:
 
 // Initialize config file
 pub fn InitializeConfigFile(
-    MAC_ADDRESS: String,
-    USERNAME: String,
-    PASSWORD: String,
+    NAME: &String,
+    MAC_ADDRESS: &String,
+    USERNAME: &String,
+    PASSWORD: &String,
 ) -> Result<(), std::io::Error> {
     // Creating config file
     let mut configFile: fs::File = CreateReturnConfigFile()?.file;
@@ -71,9 +72,10 @@ pub fn InitializeConfigFile(
     // Creating config file data
     let CONFIG_FILE_DATA: crate::ServerConfigFile = crate::ServerConfigFile {
         adminDetails: vec![crate::SCFAdminDetails {
-            macAddress: MAC_ADDRESS,
-            username: USERNAME,
-            password: PASSWORD,
+            name: NAME.to_string(),
+            macAddress: MAC_ADDRESS.to_string(),
+            username: USERNAME.to_string(),
+            password: PASSWORD.to_string(),
         }],
     };
 

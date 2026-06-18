@@ -23,7 +23,7 @@ pub async fn HandleInitializedStatusEndpoint() -> HttpResponse {
     if crate::isInitialized.load(atomic::Ordering::SeqCst) {
         return HttpResponse::Ok().finish();
     } else {
-        return HttpResponse::InternalServerError().finish();
+        return HttpResponse::NoContent().finish();
     }
 }
 
@@ -38,6 +38,7 @@ pub async fn HandleInitializeServerEndpoint(
     req: web::Json<SCFAdminDetailsExtendedFLNR>,
 ) -> HttpResponse {
     // Safely extract headers without unwrapping
+    let NAME = &req.admin.name;
     let MAC_ADDRESS = &req.admin.macAddress;
     let USERNAME = &req.admin.username;
     let PASSWORD = &req.admin.password;
@@ -51,7 +52,10 @@ pub async fn HandleInitializeServerEndpoint(
     }
 
     // Format checking
-    if MAC_ADDRESS == "" || !crate::MAC_ADDRESS_FORMAT.is_match(MAC_ADDRESS) {
+    if NAME == "" {
+        return HttpResponse::Unauthorized().json(json!({"response": "Name cannot be empty"}));
+    }
+    if MAC_ADDRESS == "" || !crate::MAC_ADDRESS_FORMAT.is_match(&MAC_ADDRESS) {
         return HttpResponse::Unauthorized().json(json!({"response": "Invalid admin mac address"}));
     }
     if (USERNAME == "") || (USERNAME.contains(' ')) {
@@ -63,7 +67,7 @@ pub async fn HandleInitializeServerEndpoint(
     }
 
     // Initialize config file
-    match server::InitializeConfigFile(MAC_ADDRESS.clone(), USERNAME.clone(), PASSWORD.clone()) {
+    match server::InitializeConfigFile(NAME, MAC_ADDRESS, USERNAME, PASSWORD) {
         Ok(_) => return HttpResponse::Ok().finish(),
         Err(E) => {
             println!(

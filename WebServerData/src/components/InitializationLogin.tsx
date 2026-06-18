@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 export default function InitializationLogin({ isRegistered, isAuthenticated }: { isRegistered: any; isAuthenticated: any }) {
-    const [adminMacAddress, setAdminMacAddress] = useState("");
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [adminName, setAdminName] = useState<string>("");
+    const [adminMacAddress, setAdminMacAddress] = useState<string>("");
+    const [username, setUsername] = useState<string>("");
+    const [password, setPassword] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
 
     async function handleFormSubmission(e: React.SubmitEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -42,6 +43,7 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
             const API_RESPONSE = await fetch("/api/auth/register", {
                 method: "POST",
                 body: JSON.stringify({
+                    name: adminName,
                     adminMacAddress,
                     username,
                     password,
@@ -82,6 +84,20 @@ export default function InitializationLogin({ isRegistered, isAuthenticated }: {
                     </div>
 
                     <form onSubmit={handleFormSubmission} className="space-y-5">
+                        {/* Admin name */}
+                        <div>
+                            <label className="block text-sm text-white/70 mb-2 select-none">Administrator Name</label>
+
+                            <input
+                                type="text"
+                                placeholder="John Doe"
+                                value={adminName}
+                                onChange={(e) => setAdminName(e.target.value)}
+                                className="w-full rounded-xl bg-white/[0.04] border border-white/10 px-4 py-3 text-white placeholder:text-white/30 outline-none focus:border-[#1793d1] focus:ring-2 focus:ring-[#1793d1]/20 transition placeholder:select-none"
+                                required
+                            />
+                        </div>
+
                         {/* MAC Address */}
                         <div>
                             <label className="block text-sm text-white/70 mb-2 select-none">Administrator PC MAC Address</label>
