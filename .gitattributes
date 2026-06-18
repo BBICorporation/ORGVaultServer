@@ -1,0 +1,2 @@
+# Make sure project shows rust as it's language
+*.rs linguist-language=Rust
