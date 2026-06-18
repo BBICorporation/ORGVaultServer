@@ -108,18 +108,20 @@ pub async fn HandleLoginVerificationEndpoint(
     };
 
     // Checking if admin mac is valid
-    if &DECRYPTED_DATA.adminDetails.macAddress != MAC_ADDRESS {
-        return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
-    }
+    for i in 0..DECRYPTED_DATA.adminDetails.len() {
+        if &DECRYPTED_DATA.adminDetails[i].macAddress != MAC_ADDRESS {
+            return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+        }
 
-    // Checking if username is valid
-    if &DECRYPTED_DATA.adminDetails.username != USERNAME {
-        return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
-    }
+        // Checking if username is valid
+        if &DECRYPTED_DATA.adminDetails[i].username != USERNAME {
+            return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+        }
 
-    // Checking if password is valid
-    if &DECRYPTED_DATA.adminDetails.password != PASSWORD {
-        return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+        // Checking if password is valid
+        if &DECRYPTED_DATA.adminDetails[i].password != PASSWORD {
+            return HttpResponse::Unauthorized().json(json!({"response": "Invalid credentials"}));
+        }
     }
 
     // Return

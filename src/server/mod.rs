@@ -70,11 +70,11 @@ pub fn InitializeConfigFile(
 
     // Creating config file data
     let CONFIG_FILE_DATA: crate::ServerConfigFile = crate::ServerConfigFile {
-        adminDetails: crate::SCFAdminDetails {
+        adminDetails: vec![crate::SCFAdminDetails {
             macAddress: MAC_ADDRESS,
             username: USERNAME,
             password: PASSWORD,
-        },
+        }],
     };
 
     // Converting to JSON
