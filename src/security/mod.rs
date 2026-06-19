@@ -45,7 +45,7 @@ pub fn VerifySecurityRequirements() -> Result<(), String> {
             "\t\t### Encryption key file does not exists!",
             "Generating....".green()
         );
-        match encryptionHandler::GenerateConfigEncryptionKey() {
+        match encryptionHandler::GenerateConfigEncryptionKey(encryptionHandler::EncryptionKeyType::ConfigKey) {
             Ok(_) => {
                 println!("\t\t### Encryption key file generated!");
             }

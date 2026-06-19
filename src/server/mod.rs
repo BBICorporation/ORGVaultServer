@@ -7,7 +7,10 @@ use std::{
     sync::atomic::Ordering,
 };
 
-use crate::security::encryptionHandler::EncryptData;
+use crate::security::encryptionHandler::{
+    EncryptData, EncryptionKeyType, GenerateConfigEncryptionKey,
+};
+use colored::*;
 
 // Server addr/port
 pub const SERVER_ADDRESS: Ipv4Addr = Ipv4Addr::UNSPECIFIED;
@@ -69,14 +72,29 @@ pub fn InitializeConfigFile(
     // Creating config file
     let mut configFile: fs::File = CreateReturnConfigFile()?.file;
 
+    // Createing common enc key
+    if let Err(E) = GenerateConfigEncryptionKey(EncryptionKeyType::CommonKey) {
+        return Err(format!(
+            "{0} {1:?}",
+            "Error generating common enc key | VerifySecurityRequirements:  ".red(),
+            E
+        ));
+    };
+
     // Creating config file data
     let CONFIG_FILE_DATA: crate::ServerConfigFile = crate::ServerConfigFile {
+        serverDetails: crate::SCFServerDetails {
+            commonEncryptionKeyLoc: crate::GLOBAL_COMMON_ENCRYPTION_KEY_FILE_LOCATION.to_string(),
+        },
         adminDetails: vec![crate::SCFAdminDetails {
             name: NAME.to_string(),
             macAddress: MAC_ADDRESS.to_string(),
             username: USERNAME.to_string(),
             password: PASSWORD.to_string(),
         }],
+        managers: Vec::new(),
+        folders: Vec::new(),
+        employees: Vec::new(),
     };
 
     // Converting to JSON

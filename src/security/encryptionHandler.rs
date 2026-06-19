@@ -9,13 +9,34 @@ use std::{
 };
 
 // GenerateConfigEncryptionKey function
-pub fn GenerateConfigEncryptionKey() -> Result<(), Error> {
+#[derive(PartialEq, Debug)]
+pub enum EncryptionKeyType {
+    ConfigKey,
+    CommonKey,
+}
+pub fn GenerateConfigEncryptionKey(EKT: EncryptionKeyType) -> Result<(), Error> {
     let mut key = [0u8; 32];
 
     rand::thread_rng().fill_bytes(&mut key[..]);
 
+    let KEY_FILE_LOCATION = if EKT == EncryptionKeyType::ConfigKey {
+        &*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION
+    } else if EKT == EncryptionKeyType::CommonKey {
+        &*crate::GLOBAL_COMMON_ENCRYPTION_KEY_FILE_LOCATION
+    } else {
+        return Err(Error::new(
+            ErrorKind::Other,
+            format!(
+                "{0} {1:?}: {2:?}",
+                "Generate Config Encryption Key Error (file creation) | GenerateConfigEncryptionKey | Key Type Code:".red(),
+                EKT,
+                "Invalid encryption key type"
+            ),
+        ));
+    };
+
     let mut file =
-        std::fs::File::create(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION).map_err(|E| {
+        std::fs::File::create(KEY_FILE_LOCATION).map_err(|E| {
             Error::new(
                 ErrorKind::Other,
                 format!(

@@ -20,7 +20,7 @@ pub static GLOBAL_PROGRAM_CONFIG_FILE: LazyLock<String> = LazyLock::new(|| {
     if cfg!(debug_assertions) {
         format!("{0}/GlobalConfigTesting/config.json", *CURRENT_DIR)
     } else {
-        "/etc/orgvault/config.json".to_string()
+        "/usr/share/orgvault/config.json".to_string()
     }
 });
 
@@ -29,6 +29,14 @@ pub static GLOBAL_ENCRYPTION_KEY_FILE_LOCATION: LazyLock<String> = LazyLock::new
         format!("{0}/GlobalConfigTesting/key.bin", *CURRENT_DIR)
     } else {
         "/etc/orgvault/key.bin".to_string()
+    }
+});
+
+pub static GLOBAL_COMMON_ENCRYPTION_KEY_FILE_LOCATION: LazyLock<String> = LazyLock::new(|| {
+    if cfg!(debug_assertions) {
+        format!("{0}/GlobalConfigTesting/commonEncKey.bin", *CURRENT_DIR)
+    } else {
+        "/usr/share/orgvault/commonEncKey.bin".to_string()
     }
 });
 
@@ -57,17 +65,17 @@ pub struct ConfigFileReturnValue {
 // Server config file data structure
 #[derive(Deserialize, Serialize)]
 pub struct ServerConfigFile {
-    // pub serverDetails: SCFServerDetails,
+    pub serverDetails: SCFServerDetails,
     pub adminDetails: Vec<SCFAdminDetails>,
-    // pub managers: Vec<SCFManagers>,
-    // pub folders: Vec<SCFFolders>,
-    // pub employees: Vec<SCFEmployee>,
+    pub managers: Vec<SCFManagers>,
+    pub folders: Vec<SCFFolders>,
+    pub employees: Vec<SCFEmployee>,
 }
 
-// #[derive(Deserialize, Serialize)]
-// pub struct SCFServerDetails {
-//     pub commonEncryptionKey: String,
-// }
+#[derive(Deserialize, Serialize)]
+pub struct SCFServerDetails {
+    pub commonEncryptionKeyLoc: String,
+}
 
 #[derive(Deserialize, Serialize)]
 pub struct SCFAdminDetails {
@@ -77,24 +85,24 @@ pub struct SCFAdminDetails {
     pub password: String,
 }
 
-// #[derive(Deserialize, Serialize)]
-// pub struct SCFManagers {
-//     pub name: String,
-//     pub macAddress: String,
-//     pub publicKey: String,
-//     pub departments: Vec<String>,
-// }
+#[derive(Deserialize, Serialize)]
+pub struct SCFManagers {
+    pub name: String,
+    pub macAddress: String,
+    pub publicKeyLoc: String,
+    pub departments: Vec<String>,
+}
 
-// #[derive(Deserialize, Serialize)]
-// pub struct SCFFolders {
-//     pub folderName: String,
-//     pub department: String,
-// }
+#[derive(Deserialize, Serialize)]
+pub struct SCFFolders {
+    pub folderName: String,
+    pub department: String,
+}
 
-// #[derive(Deserialize, Serialize)]
-// pub struct SCFEmployee {
-//     pub name: String,
-//     pub macAddress: String,
-//     pub publicKey: String,
-//     pub department: String,
-// }
+#[derive(Deserialize, Serialize)]
+pub struct SCFEmployee {
+    pub name: String,
+    pub macAddress: String,
+    pub publicKeyLoc: String,
+    pub department: String,
+}
