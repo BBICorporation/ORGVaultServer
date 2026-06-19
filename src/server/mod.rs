@@ -2,7 +2,7 @@ pub mod webServer;
 pub mod webServerEndpoints;
 use std::{
     fs,
-    io::{Read, Write},
+    io::{Error, ErrorKind, Read, Write},
     net::Ipv4Addr,
     sync::atomic::Ordering,
 };
@@ -19,7 +19,7 @@ pub const WEB_SERVER_BACKEND_PORT: u16 = 3100;
 pub const WEB_SERVER_FRONTEND_PORT: u16 = 3000;
 
 // Config file checking / creation
-pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, std::io::Error> {
+pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, Error> {
     return match fs::OpenOptions::new()
         .read(true)
         .write(true)
@@ -34,7 +34,7 @@ pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, std::io:
 
         // Not found file
         Err(e) => match e.kind() {
-            std::io::ErrorKind::NotFound => {
+            ErrorKind::NotFound => {
                 // Creating directory
                 if let Some(PARENT) =
                     std::path::Path::new(&*crate::GLOBAL_PROGRAM_CONFIG_FILE).parent()
@@ -54,8 +54,8 @@ pub fn CreateReturnConfigFile() -> Result<crate::ConfigFileReturnValue, std::io:
             }
 
             // Unexpected error occured
-            _ => Err(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            _ => Err(Error::new(
+                ErrorKind::Other,
                 "Unexpected error occurred",
             )),
         },
@@ -68,16 +68,19 @@ pub fn InitializeConfigFile(
     MAC_ADDRESS: &String,
     USERNAME: &String,
     PASSWORD: &String,
-) -> Result<(), std::io::Error> {
+) -> Result<(), Error> {
     // Creating config file
     let mut configFile: fs::File = CreateReturnConfigFile()?.file;
 
     // Createing common enc key
     if let Err(E) = GenerateConfigEncryptionKey(EncryptionKeyType::CommonKey) {
-        return Err(format!(
-            "{0} {1:?}",
-            "Error generating common enc key | VerifySecurityRequirements:  ".red(),
-            E
+        return Err(Error::new(
+            ErrorKind::Other,
+            format!(
+                "{0} {1:?}",
+                "Error generating common enc key | VerifySecurityRequirements:  ".red(),
+                E
+            ),
         ));
     };
 
@@ -99,7 +102,7 @@ pub fn InitializeConfigFile(
 
     // Converting to JSON
     let JSON = serde_json::to_string_pretty(&CONFIG_FILE_DATA)
-        .map_err(|E| std::io::Error::new(std::io::ErrorKind::Other, E))?;
+        .map_err(|E| Error::new(ErrorKind::Other, E))?;
 
     let mut keyFile: fs::File = fs::File::open(&*crate::GLOBAL_ENCRYPTION_KEY_FILE_LOCATION)?;
 

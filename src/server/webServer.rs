@@ -158,4 +158,8 @@ fn ConfigureAPIEndpoints(cfg: &mut web::ServiceConfig) {
         "/api/backend/loginVerification",
         web::post().to(HandleLoginVerificationEndpoint),
     );
+    cfg.route(
+        "/api/developer/seeConfigFile",
+        web::get().to(HandleDeveloperSeeConfigFileEndpoint),
+    );
 }

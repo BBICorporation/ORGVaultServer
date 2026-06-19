@@ -23,7 +23,7 @@ export default function Home() {
 
                 await new Promise((r) => setTimeout(r, 3000));
 
-                if (API_RESPONSE.ok) {
+                if (API_RESPONSE.status == 200) {
                     setNeedsInitialization(false);
                 }
             } catch (err) {

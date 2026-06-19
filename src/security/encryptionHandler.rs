@@ -209,7 +209,7 @@ pub fn DecryptData() -> Result<crate::ServerConfigFile, Error> {
     if configFileDataBuffer.len() < 12 {
         return Err(Error::new(
             ErrorKind::InvalidData,
-            format!("{0}", "Data length must be greater than 12 bytes".red()),
+            format!("{0}", "Data length must be greater than 12 bytes | DecryptData".red()),
         ));
     }
 

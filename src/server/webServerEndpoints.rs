@@ -1,3 +1,4 @@
+use crate::security::encryptionHandler;
 use crate::{security, server};
 use actix_web::HttpResponse;
 use actix_web::web;
@@ -130,4 +131,20 @@ pub async fn HandleLoginVerificationEndpoint(
 
     // Return
     HttpResponse::Ok().finish()
+}
+
+pub async fn HandleDeveloperSeeConfigFileEndpoint() -> HttpResponse {
+    if !cfg!(debug_assertions) {
+        return HttpResponse::Unauthorized().finish();
+    }
+
+    if let Ok(data) = encryptionHandler::DecryptData() {
+        return HttpResponse::Ok().json(json!(data));
+    }
+
+    if let Err(E) = encryptionHandler::DecryptData() {
+        return HttpResponse::InternalServerError().json(json!({"response": E.to_string()}));
+    }
+
+    HttpResponse::NotImplemented().finish()
 }

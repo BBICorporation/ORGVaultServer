@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
     const API_RESPONSE = await fetch(`${process.env.BACKEND_API_URL}/api/backend/initializedStatus`);
 
-    if (!API_RESPONSE.ok) {
+    if (API_RESPONSE.status != 200) {
         return NextResponse.json({ response: "Internal server error" }, { status: API_RESPONSE.status });
     }
 
