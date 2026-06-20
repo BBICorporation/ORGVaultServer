@@ -138,7 +138,7 @@ pub fn EncryptData(DATA: &[u8], KEY: &[u8]) -> Result<Vec<u8>, Error> {
 }
 
 // Decrypt data function
-pub fn DecryptData() -> Result<crate::ServerConfigFile, Error> {
+pub fn DecryptConfigData() -> Result<crate::ServerConfigFile, Error> {
     let mut configFile: fs::File = match fs::File::open(&*crate::GLOBAL_PROGRAM_CONFIG_FILE) {
         Ok(FILE) => FILE,
         Err(E) => {

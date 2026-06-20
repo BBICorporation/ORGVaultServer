@@ -104,7 +104,7 @@ pub async fn HandleLoginVerificationEndpoint(
     }
 
     // Decrypting data
-    let DECRYPTED_DATA: crate::ServerConfigFile = match security::encryptionHandler::DecryptData() {
+    let DECRYPTED_DATA: crate::ServerConfigFile = match security::encryptionHandler::DecryptConfigData() {
         Ok(DATA) => DATA,
         Err(_) => {
             return HttpResponse::InternalServerError()
@@ -138,11 +138,11 @@ pub async fn HandleDeveloperSeeConfigFileEndpoint() -> HttpResponse {
         return HttpResponse::Unauthorized().finish();
     }
 
-    if let Ok(data) = encryptionHandler::DecryptData() {
+    if let Ok(data) = encryptionHandler::DecryptConfigData() {
         return HttpResponse::Ok().json(json!(data));
     }
 
-    if let Err(E) = encryptionHandler::DecryptData() {
+    if let Err(E) = encryptionHandler::DecryptConfigData() {
         return HttpResponse::InternalServerError().json(json!({"response": E.to_string()}));
     }
 

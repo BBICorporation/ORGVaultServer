@@ -1,4 +1,4 @@
-# ORGVault 
+# ORGVault
 
 ## Project Overview
 
@@ -6,9 +6,15 @@ ORGVault is a cross platform desktop application designed to provide organizatio
 
 ---
 
+## Project Progress
+
+<img src="./githubPreview/progress.png" width="100%">
+
+---
+
 ## Key Features
 
-- **Cross-Platform Support:** Built with Rust, server is made for Linux, Client can run on Windows, MacOS & Linux.  
+- **Cross-Platform Support:** Built with Rust, server is made for Linux, Client can run on Windows, MacOS & Linux.
 - **Strong Encryption:** All stored documents are encrypted using industry standard AES-256. SHA-256 hashes are used for file integrity checks.
 - **Two-Way Synchronization:** Seamless encrypted synchronization of files between local desktop clients and a central backend server over LAN.
 - **Offline Functionality:** Full access to stored documents is available when offline. Changes are auto-synced once connectivity is restored.
@@ -16,7 +22,7 @@ ORGVault is a cross platform desktop application designed to provide organizatio
 - **Audit Trails:** All file accesses, modifications, sharing actions, and synchronization events are logged securely and viewable in-browser.
 - **Ransomware Protection:** Incorporates version-controlled document backup and immutable storage to defend against tampering or deletion.
 - **Lightweight & Easy Deployment:** The application is lightweight and designed for simple deployment in organizational intranets using Rust tooling.
-- **User authentication:** It is done with the help of MAC address for safety & reliability. 
+- **User authentication:** It is done with the help of MAC address for safety & reliability.
 
 ---
 
@@ -24,7 +30,7 @@ ORGVault is a cross platform desktop application designed to provide organizatio
 
 - **UI:** Based on `next.js` with `tailwindcss` for design ran with the help of rust.
 - **Async Runtime:** Tokio runtime (integrated within Actix Web) handles all asynchronous operations.
-- **API Layer:** Actix Web's backend api methods will be called to communicate with frontend. 
+- **API Layer:** Actix Web's backend api methods will be called to communicate with frontend.
 - **Data Storage:** Encrypted JSON document manages metadata, audit logs, and file encryption keys alongside document storage.
 
 ---
@@ -40,13 +46,16 @@ ORGVault is a cross platform desktop application designed to provide organizatio
 ---
 
 ## Setup
+
 ### Prerequisites
+
 - Rust
 - Cargo
 - Yarn
 - Node.js
 
 ### Installation
+
 1. Clone the repository
 2. Navigate to the project directory
 3. Run `cargo run`
